@@ -1,7 +1,7 @@
 describe('Basic user flow for Website', () => {
   // First, visit the lab 8 website
   beforeAll(async () => {
-    await page.goto('http://127.0.0.1:5501/index.html');
+    await page.goto('https://cse110-f2021.github.io/Lab8_Website/');
   });
 
   // Next, check to make sure that all 20 <product-item> elements have loaded
@@ -60,11 +60,16 @@ describe('Basic user flow for Website', () => {
     // Query a <product-item> element using puppeteer ( checkout page.$() and page.$$() in the docs )
     const prodItem = await page.$('product-item');
     // Grab the shadowRoot of that element (it's a property), then query a button from that shadowRoot.
-
-    
+    let shadowRoot = await prodItem.getProperty('shadowRoot');
+    let cartButton = await shadowRoot.$('button');
     // Once you have the button, you can click it and check the innerText property of the button.
+    await cartButton.click();
+    let buttonText = await cartButton.getProperty('innerText');
     // Once you have the innerText property, use innerText.jsonValue() to get the text value of it
+    let value = await buttonText.jsonValue();
+    expect(value).toBe("Remove from Cart");
   }, 2500);
+
 
   // Check to make sure that after clicking "Add to Cart" on every <product-item> that the Cart
   // number in the top right has been correctly updated
