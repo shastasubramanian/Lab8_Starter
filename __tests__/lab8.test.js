@@ -1,7 +1,7 @@
 describe('Basic user flow for Website', () => {
   // First, visit the lab 8 website
   beforeAll(async () => {
-    await page.goto('http://127.0.0.1:5501/index.html');
+    await page.goto('https://cse110-f2021.github.io/Lab8_Website/');
   });
 
   // Next, check to make sure that all 20 <product-item> elements have loaded
@@ -52,6 +52,8 @@ describe('Basic user flow for Website', () => {
     }
   }, 10000);
 
+
+
   // Check to make sure that when you click "Add to Cart" on the first <product-item> that
   // the button swaps to "Remove from Cart"
   it('Clicking the "Add to Cart" button should change button text', async () => {
@@ -60,11 +62,18 @@ describe('Basic user flow for Website', () => {
     // Query a <product-item> element using puppeteer ( checkout page.$() and page.$$() in the docs )
     const prodItem = await page.$('product-item');
     // Grab the shadowRoot of that element (it's a property), then query a button from that shadowRoot.
-
-    
+    let shadowRoot = await prodItem.getProperty('shadowRoot');
+    let cartButton = await shadowRoot.$('button');
     // Once you have the button, you can click it and check the innerText property of the button.
+    await cartButton.click();
     // Once you have the innerText property, use innerText.jsonValue() to get the text value of it
-  }, 2500);
+    let buttonText = await cartButton.getProperty('innerText');
+    // Once you have the innerText property, use innerText.jsonValue() to get the text value of it
+    let value = await buttonText.jsonValue();
+    expect(value).toBe("Remove from Cart");
+  }, 2500); 
+
+
 
   // Check to make sure that after clicking "Add to Cart" on every <product-item> that the Cart
   // number in the top right has been correctly updated
@@ -73,8 +82,23 @@ describe('Basic user flow for Website', () => {
     // TODO - Step 3
     // Query select all of the <product-item> elements, then for every single product element
     // get the shadowRoot and query select the button inside, and click on it.
+    const prodItems = await page.$$('product-item');
+    for (let i = 1; i < prodItems.length; i++){
+      // Grab the shadowRoot of product
+      let shadowRoot = await prodItems[i].getProperty('shadowRoot');
+      // Query button
+      let cartButton = await shadowRoot.$('button');
+      // Click button
+      await cartButton.click();
+    }
     // Check to see if the innerText of #cart-count is 20
+    const count_element = await page.$('#cart-count');
+    let buttonText = await count_element.getProperty('innerText');
+    let value = await buttonText.jsonValue();
+    expect(value).toBe("20");
   }, 10000);
+
+
 
   // Check to make sure that after you reload the page it remembers all of the items in your cart
   it('Checking number of items in cart on screen after reload', async () => {
@@ -83,6 +107,25 @@ describe('Basic user flow for Website', () => {
     // Reload the page, then select all of the <product-item> elements, and check every
     // element to make sure that all of their buttons say "Remove from Cart".
     // Also check to make sure that #cart-count is still 20
+
+    await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+    const prodItems = await page.$$('product-item');
+    for (let i = 0; i < prodItems.length; i++){
+      // Grab the shadowRoot of product
+      let shadowRoot = await prodItems[i].getProperty('shadowRoot');
+      // Query button
+      let cartButton = await shadowRoot.$('button');
+      let buttonText = await cartButton.getProperty('innerText');
+      // Once you have the innerText property, use innerText.jsonValue() to get the text value of it
+      let value = await buttonText.jsonValue();
+      expect(value).toBe("Remove from Cart");
+    }
+    // Check to see if the innerText of #cart-count is 20
+    const count_element = await page.$('#cart-count');
+    let buttonText = await count_element.getProperty('innerText');
+    let value = await buttonText.jsonValue();
+    expect(value).toBe("20");
+
   }, 10000);
 
   // Check to make sure that the cart in localStorage is what you expect
